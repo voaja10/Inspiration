@@ -117,13 +117,14 @@ class _PaymentDetailScreenState
 
     if (ok != true) return;
 
-    await ref.read(repositoryProvider).updatePayment(
-          paymentId: currentPayment.id,
-          date: selectedDate,
-          amountMga: double.parse(amountCtrl.text),
-          exchangeRate: double.parse(rateCtrl.text),
-          note: noteCtrl.text,
-        );
+   await ref.read(repositoryProvider).updatePayment(
+  paymentId: currentPayment.id,
+  date: selectedDate,
+  amountMga: double.parse(amountCtrl.text),
+  exchangeRate: double.parse(rateCtrl.text),
+  note: noteCtrl.text,
+  confirmed: true,
+);
 
     await _refresh();
   }
@@ -150,8 +151,9 @@ class _PaymentDetailScreenState
     if (confirm != true) return;
 
     await ref.read(repositoryProvider).deletePayment(
-          paymentId: payment.id,
-        );
+  paymentId: payment.id,
+  confirmed: true,
+);
 
     Navigator.pop(context);
   }
