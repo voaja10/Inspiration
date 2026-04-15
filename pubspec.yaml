@@ -1,8 +1,8 @@
-name: purchase_session_manager
+name: FTS
 description: Purchase Session Manager Flutter app
 publish_to: "none"
 
-version: 1.0.0+1
+version: 1.0.0+3
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
