@@ -1,341 +1,215 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../models/app_models.dart';
 import '../providers/app_providers.dart';
-import '../utils/formatters.dart';
 import '../utils/strings.dart';
+import '../utils/formatters.dart';
 import '../utils/validators.dart';
 
 class PaymentDetailScreen extends ConsumerStatefulWidget {
-  const PaymentDetailScreen({required this.payment, required this.sessionId, super.key});
   final Payment payment;
   final String sessionId;
 
+  const PaymentDetailScreen({
+    super.key,
+    required this.payment,
+    required this.sessionId,
+  });
+
   @override
-  ConsumerState<PaymentDetailScreen> createState() => _PaymentDetailScreenState();
+  ConsumerState<PaymentDetailScreen> createState() =>
+      _PaymentDetailScreenState();
 }
 
-class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
+class _PaymentDetailScreenState
+    extends ConsumerState<PaymentDetailScreen> {
   Future<void> _refresh() async {
     ref.invalidate(paymentProvider(widget.payment.id));
     ref.invalidate(sessionProvider(widget.sessionId));
-    ref.invalidate(paymentListItemsProvider(widget.sessionId));
-    ref.invalidate(sessionSummaryProvider(widget.sessionId));
-    ref.invalidate(attachmentsProvider((elementId: widget.payment.id, type: AttachmentType.payment)));
   }
 
   Future<void> _editPayment(Payment currentPayment) async {
     final formKey = GlobalKey<FormState>();
-    final amountCtrl = TextEditingController(text: currentPayment.amountMga.toStringAsFixed(2));
-    final rateCtrl = TextEditingController(text: currentPayment.exchangeRate.toStringAsFixed(2));
-    final noteCtrl = TextEditingController(text: currentPayment.note ?? '');
+
+    final amountCtrl = TextEditingController(
+      text: currentPayment.amountMga.toString(),
+    );
+
+    final rateCtrl = TextEditingController(
+      text: currentPayment.exchangeRate.toString(),
+    );
+
+    final noteCtrl = TextEditingController(
+      text: currentPayment.note ?? '',
+    );
+
     var selectedDate = currentPayment.date;
+
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setStateDialog) => AlertDialog(
-          title: Text(AppStrings.edit),
-          content: Form(
-            key: formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: amountCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(labelText: AppStrings.amountMga),
-                    validator: (value) => FormValidators.validateAmount(value, fieldName: AppStrings.amountMga),
-                  ),
-                  TextFormField(
-                    controller: rateCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(labelText: AppStrings.exchangeRate),
-                    validator: FormValidators.validateExchangeRate,
-                      return null;
-                    },
-                  ),
-                  TextFormField(controller: noteCtrl, decoration: InputDecoration(labelText: AppStrings.note)),
-                  const SizedBox(height: 12),
-                  ListTile(
-                    dense: true,
-                    title: Text('${AppStrings.date}: ${fmtDate(selectedDate)}'),
-                    trailing: const Icon(Icons.calendar_today, size: 20),
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: ctx,
-                        initialDate: selectedDate,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
-                      );
-                      if (picked != null) {
-                        setStateDialog(() => selectedDate = picked);
-                      }
-                    },
-                  ),
-                ],
-              ),
+      builder: (ctx) => AlertDialog(
+        title: Text(AppStrings.editPayment),
+        content: Form(
+          key: formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: amountCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true),
+                  decoration: InputDecoration(
+                      labelText: AppStrings.amountMga),
+                  validator: (v) =>
+                      FormValidators.validateAmount(v),
+                ),
+                TextFormField(
+                  controller: rateCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true),
+                  decoration: InputDecoration(
+                      labelText: AppStrings.exchangeRate),
+                  validator:
+                      FormValidators.validateExchangeRate,
+                ),
+                TextFormField(
+                  controller: noteCtrl,
+                  decoration:
+                      InputDecoration(labelText: AppStrings.note),
+                ),
+                const SizedBox(height: 10),
+                TextButton(
+                  onPressed: () async {
+                    final picked = await showDatePicker(
+                      context: ctx,
+                      initialDate: selectedDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2100),
+                    );
+                    if (picked != null) {
+                      selectedDate = picked;
+                    }
+                  },
+                  child: Text(
+                      '${AppStrings.date}: ${fmtDate(selectedDate)}'),
+                )
+              ],
             ),
           ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppStrings.cancel)),
-            FilledButton(
-              onPressed: () {
-                if (formKey.currentState?.validate() != true) return;
-                Navigator.pop(ctx, true);
-              },
-              child: Text(AppStrings.save),
-            ),
-          ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(AppStrings.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(ctx, true);
+              }
+            },
+            child: Text(AppStrings.save),
+          )
+        ],
       ),
     );
+
     if (ok != true) return;
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStrings.confirmUpdatePayment),
-        content: Text(AppStrings.confirmUpdatePayment),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppStrings.cancel)),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(AppStrings.confirm)),
-        ],
-      ),
-    );
-    if (confirm != true) return;
-    try {
-      await ref.read(repositoryProvider).updatePayment(
-            paymentId: currentPayment.id,
-            date: selectedDate,
-            amountMga: double.parse(amountCtrl.text.trim()),
-            exchangeRate: double.parse(rateCtrl.text.trim()),
-            note: noteCtrl.text.trim().isEmpty ? null : noteCtrl.text.trim(),
-            confirmed: true,
-          );
-      await _refresh();
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${AppStrings.error}: $e')),
-      );
-    }
+
+    await ref.read(repositoryProvider).updatePayment(
+          paymentId: currentPayment.id,
+          date: selectedDate,
+          amountMga: double.parse(amountCtrl.text),
+          exchangeRate: double.parse(rateCtrl.text),
+          note: noteCtrl.text,
+        );
+
+    await _refresh();
   }
 
-  Future<void> _deletePayment(Payment currentPayment) async {
+  Future<void> _deletePayment(Payment payment) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(AppStrings.deletePayment),
-        content: Text(AppStrings.deletePaymentConfirm),
+        title: Text(AppStrings.delete),
+        content: Text(AppStrings.confirmDelete),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppStrings.cancel)),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(AppStrings.delete)),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(AppStrings.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(AppStrings.delete),
+          ),
         ],
       ),
     );
-    if (confirm != true) return;
-    await ref.read(repositoryProvider).deletePayment(paymentId: currentPayment.id, confirmed: true);
-    await _refresh();
-    if (mounted) Navigator.pop(context);
-  }
 
-  Future<void> _deleteAttachment(Attachment attachment) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStrings.deletePhoto),
-        content: Text(AppStrings.deletePhotoConfirm),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppStrings.cancel)),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(AppStrings.delete)),
-        ],
-      ),
-    );
     if (confirm != true) return;
-    await ref.read(repositoryProvider).deleteAttachment(attachmentId: attachment.id, confirmed: true);
-    if (File(attachment.filePath).existsSync()) {
-      File(attachment.filePath).deleteSync();
-    }
-    await _refresh();
+
+    await ref.read(repositoryProvider).deletePayment(
+          paymentId: payment.id,
+        );
+
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    final paymentState = ref.watch(paymentProvider(widget.payment.id));
-    final sessionState = ref.watch(sessionProvider(widget.sessionId));
-    final isClosed = sessionState.maybeWhen(
-      data: (session) => session?.status == SessionStatus.closed,
-      orElse: () => false,
-    );
-    final currentPayment = paymentState.maybeWhen(
-      data: (payment) => payment ?? widget.payment,
-      orElse: () => widget.payment,
-    );
+    final paymentAsync =
+        ref.watch(paymentProvider(widget.payment.id));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${AppStrings.payments} - ${fmtMga(currentPayment.amountMga)}'),
+        title: Text(AppStrings.paymentDetail),
         actions: [
           IconButton(
-            onPressed: isClosed
-                ? null
-                : () async {
-                    final payment = await ref.read(paymentProvider(widget.payment.id).future);
-                    if (payment == null) return;
-                    await _editPayment(payment);
-                  },
             icon: const Icon(Icons.edit),
+            onPressed: () async {
+              final payment = await ref.read(
+                  paymentProvider(widget.payment.id).future);
+              if (payment != null) {
+                await _editPayment(payment);
+              }
+            },
           ),
           IconButton(
-            onPressed: isClosed
-                ? null
-                : () async {
-                    final payment = await ref.read(paymentProvider(widget.payment.id).future);
-                    if (payment == null) return;
-                    await _deletePayment(payment);
-                  },
-            icon: const Icon(Icons.delete_outline),
-          ),
+            icon: const Icon(Icons.delete),
+            onPressed: () async {
+              final payment = await ref.read(
+                  paymentProvider(widget.payment.id).future);
+              if (payment != null) {
+                await _deletePayment(payment);
+              }
+            },
+          )
         ],
       ),
-      body: Builder(
-        builder: (context) {
-          final attachmentsState =
-              ref.watch(attachmentsProvider((elementId: currentPayment.id, type: AttachmentType.payment)));
-          final attachments = attachmentsState.valueOrNull ?? const <Attachment>[];
-          return ListView(
+      body: paymentAsync.when(
+        data: (payment) {
+          if (payment == null) {
+            return const Center(child: Text('No data'));
+          }
+
+          return Padding(
             padding: const EdgeInsets.all(16),
-            children: [
-              Text('${AppStrings.date}: ${fmtDate(currentPayment.date)}'),
-              Text('${AppStrings.amountMga}: ${fmtMga(currentPayment.amountMga)}'),
-              Text('${AppStrings.exchangeRate}: ${currentPayment.exchangeRate.toStringAsFixed(2)}'),
-              Text('${AppStrings.computedRmb}: ${fmtRmb(currentPayment.amountRmbComputed)}'),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Text('${AppStrings.attachments} (${attachments.length})', style: Theme.of(context).textTheme.titleMedium),
-                  if (attachments.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: Text('📄', style: TextStyle(fontSize: 18, color: Colors.green[700])),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              if (attachments.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Text(AppStrings.noReceipts, style: const TextStyle(color: Colors.grey)),
-                )
-              else
-                GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 8, crossAxisSpacing: 8),
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: attachments.length,
-                  itemBuilder: (context, index) {
-                    final a = attachments[index];
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => Scaffold(
-                              appBar: AppBar(
-                                title: Text(AppStrings.receiptTooltip),
-                                actions: [
-                                  if (!isClosed)
-                                    IconButton(
-                                      icon: const Icon(Icons.delete_outline),
-                                      onPressed: () async {
-                                        Navigator.pop(context);
-                                        await _deleteAttachment(a);
-                                      },
-                                      tooltip: AppStrings.deletePhotoTooltip,
-                                    ),
-                                ],
-                              ),
-                              body: InteractiveViewer(
-                                child: Center(child: Image.file(File(a.filePath))),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                      onLongPress: isClosed ? null : () => _deleteAttachment(a),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey[300]!),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.file(File(a.filePath), fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.grey[200],
-                              child: const Icon(Icons.image_not_supported),
-                            );
-                          }),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-            ],
-          );
-        },
-      ),
-      floatingActionButton: isClosed
-          ? null
-          : FloatingActionButton(
-        onPressed: () async {
-          await showModalBottomSheet<void>(
-            context: context,
-            builder: (ctx) => SafeArea(
-              child: Wrap(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.camera_alt),
-                    title: Text(AppStrings.photoFromCamera),
-                    onTap: () async {
-                      Navigator.pop(ctx);
-                      final attachment = await ref.read(attachmentServiceProvider).pickAndCompress(
-                            type: AttachmentType.payment,
-                            elementId: currentPayment.id,
-                            source: ImageSource.camera,
-                          );
-                      if (attachment != null) {
-                        await ref.read(repositoryProvider).saveAttachment(attachment);
-                        await _refresh();
-                      }
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.photo_library),
-                    title: Text(AppStrings.photoFromGallery),
-                    onTap: () async {
-                      Navigator.pop(ctx);
-                      final attachment = await ref.read(attachmentServiceProvider).pickAndCompress(
-                            type: AttachmentType.payment,
-                            elementId: currentPayment.id,
-                            source: ImageSource.gallery,
-                          );
-                      if (attachment != null) {
-                        await ref.read(repositoryProvider).saveAttachment(attachment);
-                        await _refresh();
-                      }
-                    },
-                  ),
-                ],
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${AppStrings.date}: ${fmtDate(payment.date)}'),
+                Text('${AppStrings.amountMga}: ${payment.amountMga}'),
+                Text('${AppStrings.exchangeRate}: ${payment.exchangeRate}'),
+                Text('${AppStrings.rmb}: ${payment.amountRmbComputed}'),
+                Text('${AppStrings.note}: ${payment.note ?? ''}'),
+              ],
             ),
           );
         },
-        child: const Icon(Icons.add_photo_alternate),
+        loading: () =>
+            const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text(e.toString())),
       ),
     );
   }
