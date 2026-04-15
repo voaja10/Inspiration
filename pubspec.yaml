@@ -1,5 +1,5 @@
-name: purchase_session_manager
-description: Local-first Flutter app for purchase sessions, invoices, corrections, payments, attachments and backups.
+name: fts
+description: Application locale pour gérer les sessions d'achat, factures, corrections, versements, pièces jointes et sauvegardes.
 publish_to: "none"
 version: 1.0.0+1
 

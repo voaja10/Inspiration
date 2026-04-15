@@ -23,7 +23,6 @@ final pdfServiceProvider = Provider<PdfService>((ref) => PdfService());
 
 final sessionsProvider = FutureProvider<List<Session>>((ref) async {
   final repo = ref.read(repositoryProvider);
-  await repo.seedData();
   return repo.getSessions();
 });
 

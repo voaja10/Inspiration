@@ -490,28 +490,9 @@ class PurchaseRepository {
   }
 
   Future<void> seedData() async {
-    final current = await getSessions();
-    if (current.isNotEmpty) return;
-    final session = await createSession('FTS TRIP 2026');
-    final invoice = await createInvoice(
-      sessionId: session.id,
-      reference: 'INV-FTS-001',
-      supplier: 'Shenzhen Supplier',
-      amountInitialRmb: 1230,
-    );
-    await addCorrection(
-      invoiceId: invoice.id,
-      date: DateTime.now(),
-      amountRmb: -30,
-      reason: 'Post-delivery missing items',
-    );
-    await createPayment(
-      sessionId: session.id,
-      date: DateTime.now(),
-      amountMga: 3300000,
-      exchangeRate: 650.0,
-      note: 'First wire payment',
-    );
+    // Demo data seeding disabled for production
+    // App starts empty - restore/import only
+    return;
   }
 
   Future<void> _assertSessionOpen(String sessionId) async {

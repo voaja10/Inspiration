@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'screens/sessions_list_screen.dart';
+import 'utils/strings.dart';
 
 class PurchaseSessionApp extends StatelessWidget {
   const PurchaseSessionApp({super.key});
@@ -8,11 +9,15 @@ class PurchaseSessionApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Purchase Session Manager',
+      title: AppStrings.appTitle,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueAccent),
         useMaterial3: true,
+        appBarTheme: AppBarTheme(
+          elevation: 2,
+          centerTitle: false,
+        ),
       ),
       home: const SessionsListScreen(),
     );

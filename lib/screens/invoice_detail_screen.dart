@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../models/app_models.dart';
 import '../providers/app_providers.dart';
 import '../utils/formatters.dart';
+import '../utils/strings.dart';
 import '../utils/validators.dart';
 
 class InvoiceDetailScreen extends ConsumerStatefulWidget {
@@ -36,7 +37,7 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Edit Invoice'),
+        title: Text(AppStrings.edit),
         content: Form(
           key: formKey,
           child: Column(
@@ -44,7 +45,7 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
             children: [
               TextFormField(
                 controller: refCtrl,
-                decoration: const InputDecoration(labelText: 'Reference'),
+                decoration: InputDecoration(labelText: AppStrings.reference),
                 validator: FormValidators.validateInvoiceReference,
               ),
               TextFormField(
@@ -269,11 +270,11 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete invoice'),
-        content: const Text('Invoice, corrections and related links will be removed. Continue?'),
+        title: Text(AppStrings.deleteInvoice),
+        content: Text(AppStrings.deleteInvoiceConfirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppStrings.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(AppStrings.delete)),
         ],
       ),
     );
@@ -330,11 +331,11 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
               return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text('Initial Amount: ${fmtRmb(currentInvoice.amountInitialRmb)}'),
-              Text('Corrections Total: ${fmtRmb(corrTotal)}'),
-              Text('Final Amount: ${fmtRmb(currentInvoice.amountInitialRmb + corrTotal)}'),
+              Text('${AppStrings.initialRmb}: ${fmtRmb(currentInvoice.amountInitialRmb)}'),
+              Text('${AppStrings.correctionsTotal}: ${fmtRmb(corrTotal)}'),
+              Text('${AppStrings.finalAmount}: ${fmtRmb(currentInvoice.amountInitialRmb + corrTotal)}'),
               const SizedBox(height: 12),
-              Text('Corrections (${corrections.length})', style: Theme.of(context).textTheme.titleMedium),
+              Text('${AppStrings.addCorrection} (${corrections.length})', style: Theme.of(context).textTheme.titleMedium),
               ...corrections.map(
                 (c) => ListTile(
                   title: Text(fmtRmb(c.amountRmb)),
@@ -345,9 +346,9 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
                       if (value == 'edit') await _editCorrection(c);
                       if (value == 'delete') await _deleteCorrection(c);
                     },
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(value: 'edit', child: Text('Edit')),
-                      PopupMenuItem(value: 'delete', child: Text('Delete')),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(value: 'edit', child: Text(AppStrings.edit)),
+                      PopupMenuItem(value: 'delete', child: Text(AppStrings.delete)),
                     ],
                   ),
                 ),
@@ -355,7 +356,7 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Text('Attachments (${attachments.length})', style: Theme.of(context).textTheme.titleMedium),
+                  Text('${AppStrings.attachments} (${attachments.length})', style: Theme.of(context).textTheme.titleMedium),
                   if (attachments.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(left: 8),
@@ -365,9 +366,9 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
               ),
               const SizedBox(height: 8),
               if (attachments.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Text('No attachments yet', style: TextStyle(color: Colors.grey)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Text(AppStrings.noReceipts, style: const TextStyle(color: Colors.grey)),
                 )
               else
                 GridView.builder(
@@ -384,16 +385,16 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
                           MaterialPageRoute(
                             builder: (_) => Scaffold(
                               appBar: AppBar(
-                                title: const Text('Photo'),
-                                actions: [
-                                  if (!isClosed)
-                                    IconButton(
-                                      icon: const Icon(Icons.delete_outline),
-                                      onPressed: () async {
-                                        Navigator.pop(context);
-                                        await _deleteAttachment(a);
-                                      },
-                                      tooltip: 'Delete photo',
+                                  title: Text(AppStrings.addPhoto),
+                                  actions: [
+                                    if (!isClosed)
+                                      IconButton(
+                                        icon: const Icon(Icons.delete_outline),
+                                        onPressed: () async {
+                                          Navigator.pop(context);
+                                          await _deleteAttachment(a);
+                                        },
+                                        tooltip: AppStrings.deletePhotoTooltip,
                                     ),
                                 ],
                               ),
@@ -438,7 +439,7 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
                 children: [
                   ListTile(
                     leading: const Icon(Icons.calculate),
-                    title: const Text('Add correction'),
+                    title: Text(AppStrings.addCorrection),
                     onTap: () async {
                       Navigator.pop(ctx);
                       final invoice = await ref.read(invoiceProvider(widget.invoice.id).future);
@@ -448,7 +449,7 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.camera_alt),
-                    title: const Text('Add photo from camera'),
+                    title: Text(AppStrings.photoFromCamera),
                     onTap: () async {
                       Navigator.pop(ctx);
                       final attachment = await ref.read(attachmentServiceProvider).pickAndCompress(
@@ -464,7 +465,7 @@ class _InvoiceDetailScreenState extends ConsumerState<InvoiceDetailScreen> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.photo_library),
-                    title: const Text('Add photo from gallery'),
+                    title: Text(AppStrings.photoFromGallery),
                     onTap: () async {
                       Navigator.pop(ctx);
                       final attachment = await ref.read(attachmentServiceProvider).pickAndCompress(

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/app_models.dart';
 import '../providers/app_providers.dart';
 import '../utils/formatters.dart';
+import '../utils/strings.dart';
 
 class AuditHistoryScreen extends ConsumerWidget {
   const AuditHistoryScreen({required this.sessionId, super.key});
@@ -14,13 +15,13 @@ class AuditHistoryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Audit History')),
+      appBar: AppBar(title: Text(AppStrings.auditHistory)),
       body: FutureBuilder<List<AuditLog>>(
         future: ref.read(repositoryProvider).auditLogsForSession(sessionId),
         builder: (context, snapshot) {
           final logs = snapshot.data ?? [];
           if (logs.isEmpty) {
-            return const Center(child: Text('No audit records for this session.'));
+            return Center(child: Text(AppStrings.noAuditRecords));
           }
           final grouped = <String, List<AuditLog>>{};
           for (final log in logs) {
@@ -64,19 +65,19 @@ class AuditHistoryScreen extends ConsumerWidget {
 
   Widget _buildChangesSummary(AuditLog log, List<String> changes) {
     if (log.actionType == AuditActionType.create) {
-      return const Text('Created new record');
+      return Text(AppStrings.auditActionCreate);
     }
     if (log.actionType == AuditActionType.delete) {
-      return const Text('Record deleted permanently');
+      return Text(AppStrings.auditActionDelete);
     }
     if (log.actionType == AuditActionType.restore) {
-      return const Text('Data restored from backup');
+      return Text(AppStrings.auditActionRestore);
     }
     if (log.actionType == AuditActionType.protectedEdit) {
-      return const Text('Protected operation (session reopen/name change)');
+      return Text(AppStrings.auditActionProtectedEdit);
     }
     if (changes.isEmpty) {
-      return const Text('No field changes recorded');
+      return Text(AppStrings.auditNoChanges);
     }
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/app_models.dart';
 import '../providers/app_providers.dart';
 import '../utils/formatters.dart';
+import '../utils/strings.dart';
 import '../utils/validators.dart';
 import '../widgets/summary_card.dart';
 import 'audit_history_screen.dart';
@@ -34,23 +35,23 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Edit Session Name'),
+        title: Text(AppStrings.editSessionName),
         content: Form(
           key: formKey,
           child: TextFormField(
             controller: ctrl,
-            decoration: const InputDecoration(labelText: 'Session name'),
+            decoration: InputDecoration(labelText: AppStrings.sessionName),
             validator: FormValidators.validateSessionName,
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppStrings.cancel)),
           FilledButton(
             onPressed: () {
               if (formKey.currentState?.validate() != true) return;
               Navigator.pop(ctx, true);
             },
-            child: const Text('Update'),
+            child: Text(AppStrings.save),
           ),
         ],
       ),
@@ -69,11 +70,11 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
       final close = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Close Session'),
-          content: const Text('Close this session? Add/edit/delete will be locked until protected reopen.'),
+          title: Text(AppStrings.closeSession),
+          content: Text(AppStrings.closeSessionConfirm),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Close')),
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppStrings.cancel)),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(AppStrings.closeSession)),
           ],
         ),
       );
@@ -86,11 +87,11 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
     final reopen = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Protected Reopen'),
-        content: const Text('Reopen closed session? This action is logged as protected edit.'),
+        title: Text(AppStrings.protectedReopen),
+        content: Text(AppStrings.reopenSessionConfirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Reopen')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppStrings.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(AppStrings.reopen)),
         ],
       ),
     );
@@ -108,7 +109,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Add Invoice'),
+        title: Text(AppStrings.addInvoice),
         content: Form(
           key: formKey,
           child: Column(
@@ -116,31 +117,31 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
             children: [
               TextFormField(
                 controller: refCtrl,
-                decoration: const InputDecoration(labelText: 'Reference'),
+                decoration: InputDecoration(labelText: AppStrings.reference),
                 validator: FormValidators.validateInvoiceReference,
               ),
               TextFormField(
                 controller: supplierCtrl,
-                decoration: const InputDecoration(labelText: 'Supplier (optional)'),
+                decoration: InputDecoration(labelText: '${AppStrings.supplier} (${AppStrings.optional})'),
                 validator: FormValidators.validateOptional,
               ),
               TextFormField(
                 controller: amountCtrl,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Initial RMB'),
-                validator: (value) => FormValidators.validateAmount(value, fieldName: 'Initial RMB'),
+                decoration: InputDecoration(labelText: AppStrings.initialRmb),
+                validator: (value) => FormValidators.validateAmount(value, fieldName: AppStrings.initialRmb),
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppStrings.cancel)),
           FilledButton(
             onPressed: () {
               if (formKey.currentState?.validate() != true) return;
               Navigator.pop(ctx, true);
             },
-            child: const Text('Save'),
+            child: Text(AppStrings.save),
           ),
         ],
       ),
@@ -157,7 +158,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error adding invoice: $e')),
+        SnackBar(content: Text('${AppStrings.error}: $e')),
       );
     }
   }
@@ -170,7 +171,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Add Payment'),
+        title: Text(AppStrings.addPayment),
         content: Form(
           key: formKey,
           child: Column(
@@ -179,31 +180,31 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
               TextFormField(
                 controller: amountCtrl,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Amount MGA'),
-                validator: (value) => FormValidators.validateAmount(value, fieldName: 'Amount MGA'),
+                decoration: InputDecoration(labelText: AppStrings.amountMga),
+                validator: (value) => FormValidators.validateAmount(value, fieldName: AppStrings.amountMga),
               ),
               TextFormField(
                 controller: rateCtrl,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Exchange rate (MGA per RMB)'),
+                decoration: InputDecoration(labelText: '${AppStrings.exchangeRate} (MGA / RMB)'),
                 validator: FormValidators.validateExchangeRate,
               ),
               TextFormField(
                 controller: noteCtrl,
-                decoration: const InputDecoration(labelText: 'Note (optional)'),
+                decoration: InputDecoration(labelText: '${AppStrings.note} (${AppStrings.optional})'),
                 validator: FormValidators.validateOptional,
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppStrings.cancel)),
           FilledButton(
             onPressed: () {
               if (formKey.currentState?.validate() != true) return;
               Navigator.pop(ctx, true);
             },
-            child: const Text('Save'),
+            child: Text(AppStrings.save),
           ),
         ],
       ),
@@ -221,7 +222,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error adding payment: $e')),
+        SnackBar(content: Text('${AppStrings.error}: $e')),
       );
     }
   }
@@ -249,7 +250,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
               ),
               if (isClosed)
                 Chip(
-                  label: const Text('CLOSED', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  label: Text(AppStrings.closedBadge, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                   backgroundColor: Colors.red.withOpacity(0.2),
                   side: const BorderSide(color: Colors.red),
                 ),
@@ -265,7 +266,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
                     }
                   : null,
               icon: const Icon(Icons.edit),
-              tooltip: isClosed ? 'Cannot edit closed session' : 'Edit session name',
+              tooltip: isClosed ? AppStrings.cannotEditClosedSession : AppStrings.editSessionTooltip,
             ),
             IconButton(
               onPressed: () async {
@@ -277,7 +278,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
                 data: (s) => Icon(s?.status == SessionStatus.closed ? Icons.lock_open : Icons.lock),
                 orElse: () => const Icon(Icons.lock),
               ),
-              tooltip: isClosed ? 'Reopen session' : 'Close session',
+              tooltip: isClosed ? AppStrings.reopenSessionTooltip : AppStrings.closeSessionTooltip,
             ),
             IconButton(
               onPressed: () async {
@@ -307,7 +308,12 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
               icon: const Icon(Icons.history),
             ),
           ],
-          bottom: const TabBar(tabs: [Tab(text: 'Invoices'), Tab(text: 'Payments')]),
+          bottom: TabBar(
+            tabs: [
+              Tab(text: AppStrings.invoices),
+              Tab(text: AppStrings.payments),
+            ],
+          )
         ),
         body: Column(
           children: [
@@ -318,11 +324,11 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
-                  SummaryCard(title: 'Total Invoices', value: fmtRmb(s.totalInvoices), color: Colors.blue),
-                  SummaryCard(title: 'Total Payments', value: fmtRmb(s.totalPayments), color: Colors.green),
-                  SummaryCard(title: 'Remaining', value: fmtRmb(s.remainingBalance), color: Colors.red),
+                  SummaryCard(title: AppStrings.totalInvoices, value: fmtRmb(s.totalInvoices), color: Colors.blue),
+                  SummaryCard(title: AppStrings.totalPayments, value: fmtRmb(s.totalPayments), color: Colors.green),
+                  SummaryCard(title: AppStrings.remainingBalance, value: fmtRmb(s.remainingBalance), color: Colors.red),
                   SummaryCard(
-                    title: 'Status',
+                    title: AppStrings.status,
                     value: sessionState.maybeWhen(
                       data: (session) => (session?.status.name ?? widget.session.status.name).toUpperCase(),
                       orElse: () => widget.session.status.name.toUpperCase(),
@@ -368,7 +374,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
                       children: [
                         ListTile(
                           leading: const Icon(Icons.receipt_long),
-                          title: const Text('Add Invoice'),
+                          title: Text(AppStrings.addInvoice),
                           onTap: () async {
                             Navigator.pop(ctx);
                             await _addInvoice(session);
@@ -376,7 +382,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
                         ),
                         ListTile(
                           leading: const Icon(Icons.payments),
-                          title: const Text('Add Payment'),
+                          title: Text(AppStrings.addPayment),
                           onTap: () async {
                             Navigator.pop(ctx);
                             await _addPayment(session);
@@ -388,7 +394,7 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
                 );
               },
               icon: const Icon(Icons.add),
-              label: const Text('Add'),
+              label: Text(AppStrings.add),
             );
           },
           orElse: () => null,
@@ -435,11 +441,11 @@ class _InvoicesTab extends ConsumerWidget {
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (ctx) => AlertDialog(
-                      title: const Text('Delete invoice'),
-                      content: const Text('Delete this invoice from session list?'),
+                      title: Text(AppStrings.deleteInvoice),
+                      content: Text(AppStrings.deleteInvoiceConfirmMsg),
                       actions: [
-                        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+                        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppStrings.cancel)),
+                        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(AppStrings.delete)),
                       ],
                     ),
                   );
@@ -451,8 +457,8 @@ class _InvoicesTab extends ConsumerWidget {
                 }
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(value: 'open', child: Text('Open / Edit')),
-                if (!isClosed) const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                PopupMenuItem(value: 'open', child: Text(AppStrings.openEdit)),
+                if (!isClosed) PopupMenuItem(value: 'delete', child: Text(AppStrings.delete)),
               ],
             ),
             onTap: () => Navigator.push(
@@ -506,11 +512,11 @@ class _PaymentsTab extends ConsumerWidget {
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (ctx) => AlertDialog(
-                      title: const Text('Delete payment'),
-                      content: const Text('Delete this payment from session list?'),
+                      title: Text(AppStrings.deletePayment),
+                      content: Text(AppStrings.deletePaymentConfirmMsg),
                       actions: [
-                        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+                        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppStrings.cancel)),
+                        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(AppStrings.delete)),
                       ],
                     ),
                   );
@@ -522,8 +528,8 @@ class _PaymentsTab extends ConsumerWidget {
                 }
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(value: 'open', child: Text('Open / Edit')),
-                if (!isClosed) const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                PopupMenuItem(value: 'open', child: Text(AppStrings.openEdit)),
+                if (!isClosed) PopupMenuItem(value: 'delete', child: Text(AppStrings.delete)),
               ],
             ),
             onTap: () => Navigator.push(
