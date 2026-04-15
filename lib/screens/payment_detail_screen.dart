@@ -10,12 +10,18 @@ import '../utils/formatters.dart';
 import '../utils/validators.dart';
 
 class PaymentDetailScreen extends ConsumerStatefulWidget {
-  const PaymentDetailScreen({required this.payment, required this.sessionId, super.key});
+  const PaymentDetailScreen({
+    required this.payment,
+    required this.sessionId,
+    super.key,
+  });
+
   final Payment payment;
   final String sessionId;
 
   @override
-  ConsumerState<PaymentDetailScreen> createState() => _PaymentDetailScreenState();
+  ConsumerState<PaymentDetailScreen> createState() =>
+      _PaymentDetailScreenState();
 }
 
 class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
@@ -24,15 +30,24 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
     ref.invalidate(sessionProvider(widget.sessionId));
     ref.invalidate(paymentListItemsProvider(widget.sessionId));
     ref.invalidate(sessionSummaryProvider(widget.sessionId));
-    ref.invalidate(attachmentsProvider((elementId: widget.payment.id, type: AttachmentType.payment)));
+    ref.invalidate(
+      attachmentsProvider(
+        (elementId: widget.payment.id, type: AttachmentType.payment),
+      ),
+    );
   }
 
   Future<void> _editPayment(Payment currentPayment) async {
     final formKey = GlobalKey<FormState>();
-    final amountCtrl = TextEditingController(text: currentPayment.amountMga.toStringAsFixed(2));
-    final rateCtrl = TextEditingController(text: currentPayment.exchangeRate.toStringAsFixed(2));
+    final amountCtrl = TextEditingController(
+      text: currentPayment.amountMga.toStringAsFixed(2),
+    );
+    final rateCtrl = TextEditingController(
+      text: currentPayment.exchangeRate.toStringAsFixed(2),
+    );
     final noteCtrl = TextEditingController(text: currentPayment.note ?? '');
     var selectedDate = currentPayment.date;
+
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
@@ -46,19 +61,27 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
                 children: [
                   TextFormField(
                     controller: amountCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'Amount MGA'),
-                    validator: (value) => FormValidators.validateAmount(value, fieldName: 'Amount MGA'),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration:
+                        const InputDecoration(labelText: 'Amount MGA'),
+                    validator: (value) => FormValidators.validateAmount(
+                      value,
+                      fieldName: 'Amount MGA',
+                    ),
                   ),
                   TextFormField(
                     controller: rateCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(labelText: 'Exchange rate'),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    decoration:
+                        const InputDecoration(labelText: 'Exchange rate'),
                     validator: FormValidators.validateExchangeRate,
-                      return null;
-                    },
                   ),
-                  TextFormField(controller: noteCtrl, decoration: const InputDecoration(labelText: 'Note')),
+                  TextFormField(
+                    controller: noteCtrl,
+                    decoration: const InputDecoration(labelText: 'Note'),
+                  ),
                   const SizedBox(height: 12),
                   ListTile(
                     dense: true,
@@ -69,7 +92,9 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
                         context: ctx,
                         initialDate: selectedDate,
                         firstDate: DateTime(2020),
-                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                        lastDate: DateTime.now().add(
+                          const Duration(days: 365),
+                        ),
                       );
                       if (picked != null) {
                         setStateDialog(() => selectedDate = picked);
@@ -81,7 +106,10 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel'),
+            ),
             FilledButton(
               onPressed: () {
                 if (formKey.currentState?.validate() != true) return;
@@ -93,19 +121,29 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
         ),
       ),
     );
+
     if (ok != true) return;
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Confirm update'),
         content: const Text('Apply payment changes and log old/new values?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Confirm')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Confirm'),
+          ),
         ],
       ),
     );
+
     if (confirm != true) return;
+
     try {
       await ref.read(repositoryProvider).updatePayment(
             paymentId: currentPayment.id,
@@ -118,9 +156,9 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
       await _refresh();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error updating payment: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error updating payment: $e')));
     }
   }
 
@@ -129,15 +167,27 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete payment'),
-        content: const Text('Delete this payment? This action is audited and cannot be undone.'),
+        content: const Text(
+          'Delete this payment? This action is audited and cannot be undone.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
         ],
       ),
     );
+
     if (confirm != true) return;
-    await ref.read(repositoryProvider).deletePayment(paymentId: currentPayment.id, confirmed: true);
+
+    await ref
+        .read(repositoryProvider)
+        .deletePayment(paymentId: currentPayment.id, confirmed: true);
     await _refresh();
     if (mounted) Navigator.pop(context);
   }
@@ -147,18 +197,32 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete photo'),
-        content: const Text('Delete this attachment metadata and file reference?'),
+        content: const Text(
+          'Delete this attachment metadata and file reference?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
         ],
       ),
     );
+
     if (confirm != true) return;
-    await ref.read(repositoryProvider).deleteAttachment(attachmentId: attachment.id, confirmed: true);
+
+    await ref
+        .read(repositoryProvider)
+        .deleteAttachment(attachmentId: attachment.id, confirmed: true);
+
     if (File(attachment.filePath).existsSync()) {
       File(attachment.filePath).deleteSync();
     }
+
     await _refresh();
   }
 
@@ -166,10 +230,12 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
   Widget build(BuildContext context) {
     final paymentState = ref.watch(paymentProvider(widget.payment.id));
     final sessionState = ref.watch(sessionProvider(widget.sessionId));
+
     final isClosed = sessionState.maybeWhen(
       data: (session) => session?.status == SessionStatus.closed,
       orElse: () => false,
     );
+
     final currentPayment = paymentState.maybeWhen(
       data: (payment) => payment ?? widget.payment,
       orElse: () => widget.payment,
@@ -183,7 +249,9 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
             onPressed: isClosed
                 ? null
                 : () async {
-                    final payment = await ref.read(paymentProvider(widget.payment.id).future);
+                    final payment = await ref.read(
+                      paymentProvider(widget.payment.id).future,
+                    );
                     if (payment == null) return;
                     await _editPayment(payment);
                   },
@@ -193,7 +261,9 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
             onPressed: isClosed
                 ? null
                 : () async {
-                    final payment = await ref.read(paymentProvider(widget.payment.id).future);
+                    final payment = await ref.read(
+                      paymentProvider(widget.payment.id).future,
+                    );
                     if (payment == null) return;
                     await _deletePayment(payment);
                   },
@@ -203,9 +273,13 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
       ),
       body: Builder(
         builder: (context) {
-          final attachmentsState =
-              ref.watch(attachmentsProvider((elementId: currentPayment.id, type: AttachmentType.payment)));
+          final attachmentsState = ref.watch(
+            attachmentsProvider(
+              (elementId: currentPayment.id, type: AttachmentType.payment),
+            ),
+          );
           final attachments = attachmentsState.valueOrNull ?? const <Attachment>[];
+
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -216,11 +290,17 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Text('Attachments (${attachments.length})', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'Attachments (${attachments.length})',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   if (attachments.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(left: 8),
-                      child: Text('📄', style: TextStyle(fontSize: 18, color: Colors.green[700])),
+                      child: Text(
+                        '📄',
+                        style: TextStyle(fontSize: 18, color: Colors.green[700]),
+                      ),
                     ),
                 ],
               ),
@@ -228,11 +308,19 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
               if (attachments.isEmpty)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Text('No receipts attached yet', style: TextStyle(color: Colors.grey)),
+                  child: Text(
+                    'No receipts attached yet',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 )
               else
                 GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 8, crossAxisSpacing: 8),
+                  gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                  ),
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: attachments.length,
@@ -259,7 +347,9 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
                                 ],
                               ),
                               body: InteractiveViewer(
-                                child: Center(child: Image.file(File(a.filePath))),
+                                child: Center(
+                                  child: Image.file(File(a.filePath)),
+                                ),
                               ),
                             ),
                           ),
@@ -273,12 +363,16 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.file(File(a.filePath), fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.grey[200],
-                              child: const Icon(Icons.image_not_supported),
-                            );
-                          }),
+                          child: Image.file(
+                            File(a.filePath),
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey[200],
+                                child: const Icon(Icons.image_not_supported),
+                              );
+                            },
+                          ),
                         ),
                       ),
                     );
@@ -291,51 +385,59 @@ class _PaymentDetailScreenState extends ConsumerState<PaymentDetailScreen> {
       floatingActionButton: isClosed
           ? null
           : FloatingActionButton(
-        onPressed: () async {
-          await showModalBottomSheet<void>(
-            context: context,
-            builder: (ctx) => SafeArea(
-              child: Wrap(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.camera_alt),
-                    title: const Text('Add photo from camera'),
-                    onTap: () async {
-                      Navigator.pop(ctx);
-                      final attachment = await ref.read(attachmentServiceProvider).pickAndCompress(
-                            type: AttachmentType.payment,
-                            elementId: currentPayment.id,
-                            source: ImageSource.camera,
-                          );
-                      if (attachment != null) {
-                        await ref.read(repositoryProvider).saveAttachment(attachment);
-                        await _refresh();
-                      }
-                    },
+              onPressed: () async {
+                await showModalBottomSheet<void>(
+                  context: context,
+                  builder: (ctx) => SafeArea(
+                    child: Wrap(
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.camera_alt),
+                          title: const Text('Add photo from camera'),
+                          onTap: () async {
+                            Navigator.pop(ctx);
+                            final attachment = await ref
+                                .read(attachmentServiceProvider)
+                                .pickAndCompress(
+                                  type: AttachmentType.payment,
+                                  elementId: currentPayment.id,
+                                  source: ImageSource.camera,
+                                );
+                            if (attachment != null) {
+                              await ref
+                                  .read(repositoryProvider)
+                                  .saveAttachment(attachment);
+                              await _refresh();
+                            }
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.photo_library),
+                          title: const Text('Add photo from gallery'),
+                          onTap: () async {
+                            Navigator.pop(ctx);
+                            final attachment = await ref
+                                .read(attachmentServiceProvider)
+                                .pickAndCompress(
+                                  type: AttachmentType.payment,
+                                  elementId: currentPayment.id,
+                                  source: ImageSource.gallery,
+                                );
+                            if (attachment != null) {
+                              await ref
+                                  .read(repositoryProvider)
+                                  .saveAttachment(attachment);
+                              await _refresh();
+                            }
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.photo_library),
-                    title: const Text('Add photo from gallery'),
-                    onTap: () async {
-                      Navigator.pop(ctx);
-                      final attachment = await ref.read(attachmentServiceProvider).pickAndCompress(
-                            type: AttachmentType.payment,
-                            elementId: currentPayment.id,
-                            source: ImageSource.gallery,
-                          );
-                      if (attachment != null) {
-                        await ref.read(repositoryProvider).saveAttachment(attachment);
-                        await _refresh();
-                      }
-                    },
-                  ),
-                ],
-              ),
+                );
+              },
+              child: const Icon(Icons.add_photo_alternate),
             ),
-          );
-        },
-        child: const Icon(Icons.add_photo_alternate),
-      ),
     );
   }
 }
