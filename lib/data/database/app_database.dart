@@ -9,17 +9,14 @@ class AppDatabase {
 
   static const dbName = 'purchase_sessions.db';
   static const dbVersion = 1;
-
   Database? _db;
   String? _dbPath;
 
   Future<Database> get database async {
     if (_db != null && _db!.isOpen) return _db!;
-
     final dir = await getApplicationDocumentsDirectory();
     final path = p.join(dir.path, dbName);
     _dbPath = path;
-
     _db = await openDatabase(
       path,
       version: dbVersion,
@@ -28,13 +25,11 @@ class AppDatabase {
       },
       onCreate: _onCreate,
     );
-
     return _db!;
   }
 
   Future<String> get databasePath async {
     if (_dbPath != null) return _dbPath!;
-
     final dir = await getApplicationDocumentsDirectory();
     _dbPath = p.join(dir.path, dbName);
     return _dbPath!;
@@ -62,7 +57,6 @@ class AppDatabase {
         status TEXT NOT NULL CHECK (status IN ('open', 'closed'))
       );
     ''');
-
     await db.execute('''
       CREATE TABLE invoices(
         id TEXT PRIMARY KEY,
@@ -74,7 +68,6 @@ class AppDatabase {
         updatedAt TEXT NOT NULL
       );
     ''');
-
     await db.execute('''
       CREATE TABLE corrections(
         id TEXT PRIMARY KEY,
@@ -84,7 +77,6 @@ class AppDatabase {
         reason TEXT NOT NULL
       );
     ''');
-
     await db.execute('''
       CREATE TABLE payments(
         id TEXT PRIMARY KEY,
@@ -96,7 +88,6 @@ class AppDatabase {
         note TEXT NULL
       );
     ''');
-
     await db.execute('''
       CREATE TABLE attachments(
         id TEXT PRIMARY KEY,
@@ -107,7 +98,6 @@ class AppDatabase {
         createdAt TEXT NOT NULL
       );
     ''');
-
     await db.execute('''
       CREATE TABLE audit_logs(
         id TEXT PRIMARY KEY,
@@ -119,21 +109,10 @@ class AppDatabase {
         createdAt TEXT NOT NULL
       );
     ''');
-
-    await db.execute(
-      'CREATE INDEX idx_invoices_sessionId ON invoices(sessionId);',
-    );
-    await db.execute(
-      'CREATE INDEX idx_payments_sessionId ON payments(sessionId);',
-    );
-    await db.execute(
-      'CREATE INDEX idx_corrections_invoiceId ON corrections(invoiceId);',
-    );
-    await db.execute(
-      'CREATE INDEX idx_attach_element ON attachments(elementId, type);',
-    );
-    await db.execute(
-      'CREATE INDEX idx_audit_element ON audit_logs(tableName, elementId);',
-    );
+    await db.execute('CREATE INDEX idx_invoices_sessionId ON invoices(sessionId);');
+    await db.execute('CREATE INDEX idx_payments_sessionId ON payments(sessionId);');
+    await db.execute('CREATE INDEX idx_corrections_invoiceId ON corrections(invoiceId);');
+    await db.execute('CREATE INDEX idx_attach_element ON attachments(elementId, type);');
+    await db.execute('CREATE INDEX idx_audit_element ON audit_logs(tableName, elementId);');
   }
 }
