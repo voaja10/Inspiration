@@ -20,7 +20,15 @@ class AppStrings {
   static const String amountMga = 'Montant MGA';
   static const String exchangeRate = 'Taux de change';
   static const String paymentDetail = 'Détail du versement';
+  static const String editPayment = 'Modifier le versement';
   static const String rmb = 'RMB';
+
+  static const String noReceipts = 'Aucun reçu';
+  static const String addPhoto = 'Ajouter une photo';
+  static const String deletePhotoTooltip = 'Supprimer la photo';
+  static const String addCorrection = 'Ajouter une correction';
+  static const String photoFromCamera = 'Photo depuis la caméra';
+  static const String photoFromGallery = 'Photo depuis la galerie';
 
   static const String exportData = 'Exporter les données';
   static const String importRestoreData = 'Importer / Restaurer les données';
