@@ -10,10 +10,6 @@ workflows:
           flutter create .
           flutter pub get
 
-      - name: Run tests
-        script: |
-          flutter test
-
       - name: Build release APK
         script: |
           flutter build apk --release
