@@ -32,12 +32,12 @@ class _PaymentDetailScreenState
   Future<void> _editPayment(Payment currentPayment) async {
     final formKey = GlobalKey<FormState>();
 
-    final amountCtrl = TextEditingController(
+    final amountMgaCtrl = TextEditingController(
       text: currentPayment.amountMga.toString(),
     );
 
-    final rateCtrl = TextEditingController(
-      text: currentPayment.exchangeRate.toString(),
+    final amountRmbCtrl = TextEditingController(
+      text: currentPayment.amountRmbComputed.toString(),
     );
 
     final noteCtrl = TextEditingController(
@@ -45,86 +45,129 @@ class _PaymentDetailScreenState
     );
 
     var selectedDate = currentPayment.date;
+    var calculatedRate = currentPayment.exchangeRate;
 
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStrings.editPayment),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: amountCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true),
-                  decoration: InputDecoration(
-                      labelText: AppStrings.amountMga),
-                  validator: (v) =>
-                      FormValidators.validateAmount(v),
-                ),
-                TextFormField(
-                  controller: rateCtrl,
-                  keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true),
-                  decoration: InputDecoration(
-                      labelText: AppStrings.exchangeRate),
-                  validator:
-                      FormValidators.validateExchangeRate,
-                ),
-                TextFormField(
-                  controller: noteCtrl,
-                  decoration:
-                      InputDecoration(labelText: AppStrings.note),
-                ),
-                const SizedBox(height: 10),
-                TextButton(
-                  onPressed: () async {
-                    final picked = await showDatePicker(
-                      context: ctx,
-                      initialDate: selectedDate,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime(2100),
-                    );
-                    if (picked != null) {
-                      selectedDate = picked;
-                    }
-                  },
-                  child: Text(
-                      '${AppStrings.date}: ${fmtDate(selectedDate)}'),
-                )
-              ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          title: Text(AppStrings.editPayment),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: amountMgaCtrl,
+                    keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true),
+                    decoration: InputDecoration(
+                        labelText: AppStrings.amountMga),
+                    validator: (v) =>
+                        FormValidators.validateAmount(v),
+                    onChanged: (v) {
+                      setState(() {
+                        final mga = double.tryParse(v) ?? 0;
+                        final rmb = double.tryParse(amountRmbCtrl.text) ?? 0;
+                        if (mga > 0 && rmb > 0) {
+                          calculatedRate = mga / rmb;
+                        }
+                      });
+                    },
+                  ),
+                  TextFormField(
+                    controller: amountRmbCtrl,
+                    keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true),
+                    decoration: InputDecoration(
+                        labelText: AppStrings.amountRmb),
+                    validator: (v) =>
+                        FormValidators.validateAmount(v),
+                    onChanged: (v) {
+                      setState(() {
+                        final mga = double.tryParse(amountMgaCtrl.text) ?? 0;
+                        final rmb = double.tryParse(v) ?? 0;
+                        if (mga > 0 && rmb > 0) {
+                          calculatedRate = mga / rmb;
+                        }
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(AppStrings.exchangeRate),
+                        Text('${calculatedRate.toStringAsFixed(4)} (${AppStrings.exchangeRateAuto})',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: noteCtrl,
+                    decoration:
+                        InputDecoration(labelText: AppStrings.note),
+                  ),
+                  const SizedBox(height: 10),
+                  TextButton(
+                    onPressed: () async {
+                      final picked = await showDatePicker(
+                        context: ctx,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        setState(() => selectedDate = picked);
+                      }
+                    },
+                    child: Text(
+                        '${AppStrings.date}: ${fmtDate(selectedDate)}'),
+                  )
+                ],
+              ),
             ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(AppStrings.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  Navigator.pop(ctx, true);
+                }
+              },
+              child: Text(AppStrings.save),
+            )
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(AppStrings.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                Navigator.pop(ctx, true);
-              }
-            },
-            child: Text(AppStrings.save),
-          )
-        ],
       ),
     );
 
     if (ok != true) return;
 
-   await ref.read(repositoryProvider).updatePayment(
-  paymentId: currentPayment.id,
-  date: selectedDate,
-  amountMga: double.parse(amountCtrl.text),
-  exchangeRate: double.parse(rateCtrl.text),
-  note: noteCtrl.text,
-  confirmed: true,
-);
+    final mga = double.parse(amountMgaCtrl.text);
+    final rmb = double.parse(amountRmbCtrl.text);
+
+    await ref.read(repositoryProvider).updatePayment(
+      paymentId: currentPayment.id,
+      date: selectedDate,
+      amountMga: mga,
+      amountRmbComputed: rmb,
+      note: noteCtrl.text,
+      confirmed: true,
+    );
 
     await _refresh();
   }

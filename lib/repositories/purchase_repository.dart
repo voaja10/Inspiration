@@ -182,18 +182,20 @@ class PurchaseRepository {
     required String sessionId,
     required DateTime date,
     required double amountMga,
-    required double exchangeRate,
+    required double amountRmbComputed,
     String? note,
   }) async {
     await _assertSessionOpen(sessionId);
-    final computed = Payment.computeRmb(amountMga, exchangeRate);
+    if (amountMga <= 0) throw ArgumentError('Payment MGA must be > 0');
+    if (amountRmbComputed <= 0) throw ArgumentError('Payment RMB must be > 0');
+    final exchangeRate = amountMga / amountRmbComputed;
     final payment = Payment(
       id: _uuid.v4(),
       sessionId: sessionId,
       date: date,
       amountMga: amountMga,
       exchangeRate: exchangeRate,
-      amountRmbComputed: computed,
+      amountRmbComputed: amountRmbComputed,
       note: note,
     );
     final db = await _database.database;
@@ -303,25 +305,25 @@ class PurchaseRepository {
     required String paymentId,
     required DateTime date,
     required double amountMga,
-    required double exchangeRate,
+    required double amountRmbComputed,
     String? note,
     required bool confirmed,
   }) async {
     if (!confirmed) return;
     if (amountMga <= 0) throw ArgumentError('Payment MGA must be > 0');
-    if (exchangeRate <= 0) throw ArgumentError('Exchange rate must be > 0');
+    if (amountRmbComputed <= 0) throw ArgumentError('Payment RMB must be > 0');
     final db = await _database.database;
     final rows = await db.query('payments', where: 'id = ?', whereArgs: [paymentId], limit: 1);
     if (rows.isEmpty) throw StateError('Payment not found');
     final old = rows.first;
     await _assertSessionOpen(old['sessionId'] as String);
-    final computed = Payment.computeRmb(amountMga, exchangeRate);
+    final exchangeRate = amountMga / amountRmbComputed;
     final next = {
       ...old,
       'date': date.toIso8601String(),
       'amountMga': amountMga,
       'exchangeRate': exchangeRate,
-      'amountRmbComputed': computed,
+      'amountRmbComputed': amountRmbComputed,
       'note': note,
     };
     await db.update(
@@ -330,7 +332,7 @@ class PurchaseRepository {
         'date': date.toIso8601String(),
         'amountMga': amountMga,
         'exchangeRate': exchangeRate,
-        'amountRmbComputed': computed,
+        'amountRmbComputed': amountRmbComputed,
         'note': note,
       },
       where: 'id = ?',

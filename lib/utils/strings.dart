@@ -27,7 +27,9 @@ class AppStrings {
 
   // MONTANTS
   static const String amountMga = 'Montant MGA';
+  static const String amountRmb = 'Montant RMB';
   static const String exchangeRate = 'Taux de change';
+  static const String exchangeRateAuto = 'Calcul automatique';
   static const String rmb = 'RMB';
   static const String initialRmb = 'Montant initial RMB';
   static const String correctionsTotal = 'Total corrections';

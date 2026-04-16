@@ -165,57 +165,100 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
 
   Future<void> _addPayment(Session session) async {
     final formKey = GlobalKey<FormState>();
-    final amountCtrl = TextEditingController();
-    final rateCtrl = TextEditingController();
+    final amountMgaCtrl = TextEditingController();
+    final amountRmbCtrl = TextEditingController();
     final noteCtrl = TextEditingController();
+    var calculatedRate = 0.0;
+    
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStrings.addPayment),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: amountCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(labelText: AppStrings.amountMga),
-                validator: (value) => FormValidators.validateAmount(value, fieldName: AppStrings.amountMga),
-              ),
-              TextFormField(
-                controller: rateCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(labelText: '${AppStrings.exchangeRate} (MGA / RMB)'),
-                validator: FormValidators.validateExchangeRate,
-              ),
-              TextFormField(
-                controller: noteCtrl,
-                decoration: InputDecoration(labelText: '${AppStrings.note} (${AppStrings.optional})'),
-                validator: FormValidators.validateOptional,
-              ),
-            ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          title: Text(AppStrings.addPayment),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: amountMgaCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(labelText: AppStrings.amountMga),
+                  validator: (value) => FormValidators.validateAmount(value, fieldName: AppStrings.amountMga),
+                  onChanged: (v) {
+                    setState(() {
+                      final mga = double.tryParse(v) ?? 0;
+                      final rmb = double.tryParse(amountRmbCtrl.text) ?? 0;
+                      if (mga > 0 && rmb > 0) {
+                        calculatedRate = mga / rmb;
+                      }
+                    });
+                  },
+                ),
+                TextFormField(
+                  controller: amountRmbCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(labelText: AppStrings.amountRmb),
+                  validator: (value) => FormValidators.validateAmount(value, fieldName: AppStrings.amountRmb),
+                  onChanged: (v) {
+                    setState(() {
+                      final mga = double.tryParse(amountMgaCtrl.text) ?? 0;
+                      final rmb = double.tryParse(v) ?? 0;
+                      if (mga > 0 && rmb > 0) {
+                        calculatedRate = mga / rmb;
+                      }
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(AppStrings.exchangeRate),
+                      Text('${calculatedRate.toStringAsFixed(4)} (${AppStrings.exchangeRateAuto})',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: noteCtrl,
+                  decoration: InputDecoration(labelText: '${AppStrings.note} (${AppStrings.optional})'),
+                  validator: FormValidators.validateOptional,
+                ),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppStrings.cancel)),
+            FilledButton(
+              onPressed: () {
+                if (formKey.currentState?.validate() != true) return;
+                Navigator.pop(ctx, true);
+              },
+              child: Text(AppStrings.save),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(AppStrings.cancel)),
-          FilledButton(
-            onPressed: () {
-              if (formKey.currentState?.validate() != true) return;
-              Navigator.pop(ctx, true);
-            },
-            child: Text(AppStrings.save),
-          ),
-        ],
       ),
     );
     if (ok != true) return;
     try {
+      final mga = double.parse(amountMgaCtrl.text.trim());
+      final rmb = double.parse(amountRmbCtrl.text.trim());
+      
       await ref.read(repositoryProvider).createPayment(
             sessionId: widget.session.id,
             date: DateTime.now(),
-            amountMga: double.parse(amountCtrl.text.trim()),
-            exchangeRate: double.parse(rateCtrl.text.trim()),
+            amountMga: mga,
+            amountRmbComputed: rmb,
             note: noteCtrl.text.trim().isEmpty ? null : noteCtrl.text.trim(),
           );
       await _refreshSessionViews();
