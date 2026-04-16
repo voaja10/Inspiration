@@ -2,7 +2,7 @@ name: purchase_session_manager
 description: Purchase Session Manager Flutter app
 publish_to: "none"
 
-version: 1.0.0+3
+version: 1.0.0+4
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
@@ -26,6 +26,14 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icon.png
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon.png"
